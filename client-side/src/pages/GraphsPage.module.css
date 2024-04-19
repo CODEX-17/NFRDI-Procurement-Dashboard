@@ -1,0 +1,122 @@
+@font-face {
+    font-family: bold;
+    src: url('../assets/fonts/Montserrat-Bold.ttf');
+  }
+
+  @font-face {
+    font-family: normal;
+    src: url('../assets/fonts/Montserrat-Regular.ttf');
+  }
+
+.container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 5%;
+    font-family: normal;
+    color: #004481;
+}
+
+.horizontal {
+    display: flex;
+    gap: 2%;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 50%;
+    height: 100%;
+    border-radius: 10px;
+    padding: 2%;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+    font-family: bold;
+    font-size: 15pt;
+    padding: 0;
+    margin: 0;
+}
+
+.cardPieGraph {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    height: 500px;
+    border-radius: 10px;
+    padding: 1%;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.cardPieGraph h2 {
+    font-family: normal;
+    font-size: 15pt;
+}
+
+.cardPieGraph b {
+    font-family: bold;
+}
+
+.leftCon {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+.cardTotal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    color: white;
+    border-radius: 10px;
+    padding: 2%;
+    background-color: #004481;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.cardTotal h2 {
+    font-size: 60pt;
+    font-family: bold;
+    margin: 0;
+    padding: 0;
+}
+
+.cardTotal p {
+    font-size: 15pt;
+}
+
+.cardTotal h1 {
+    font-size: 80pt;
+    font-family: bold;
+}
+
+#pie {
+    display: flex;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    width: 80%;
+    height: 80%;
+}
+
+.center {
+    display: flex;
+    width: 100%;
+    height: 70%;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.center h1 {
+    font-family: bold;
+    font-size: 60pt;
+}

@@ -1,0 +1,131 @@
+@font-face {
+    font-family: bold;
+    src: url('../assets/fonts/Montserrat-Bold.ttf');
+  }
+  
+  @font-face {
+    font-family: normal;
+    src: url('../assets/fonts/Montserrat-Regular.ttf');
+  }
+  
+
+.container {
+    animation: pop 0.5s ease;
+    font-family: normal;
+    background-color: white;
+    width: 50%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    padding: 2%;
+    color: #004481;
+}
+
+.exitCon {
+    display: flex;
+    align-items: end;
+    justify-content: flex-end;
+    margin-bottom: 2%;
+}
+
+.top {
+    display: flex;
+    color: #004481;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    position: relative;
+}
+
+#badge {
+    background-color: #004481;
+    color: white;
+    width: 150px;
+    border-radius: 10px;
+    font-size: 10pt;
+    padding-top: 0.5%;
+    padding-bottom: 0.5%;
+    position: absolute;
+    right: 0;
+}
+
+#exit {
+    color: #004481;
+    cursor: pointer;
+}
+
+#exit:hover {
+    transform: scale(110%);
+}
+
+.top p {
+    margin: 0;  
+    font-size: 12;
+}
+
+.top h2 {
+    margin: 0;
+    font-size: 20pt;
+    font-family: bold;
+}
+
+.bot {
+    margin-top: 5%;
+    height: auto;
+}
+
+.vertical {
+    display: flex;
+    flex-direction: column;
+    width: 150px;
+
+}
+
+.btnActived {
+    background-color: #004481;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+.btnDisabled {
+    background-color: rgb(206, 206, 206);
+    color: white;
+    border: none;
+    cursor: none;
+    border-radius: 5px;
+}
+
+.btnActived:hover {
+    background-color: white;
+    color: #004481;
+    border: 2px solid #004481;
+}
+
+.vertical p {
+    margin: 0;
+    font-family: bold;
+}
+
+
+
+@keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes pop {
+    from {
+      transform: scale(0.5);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
