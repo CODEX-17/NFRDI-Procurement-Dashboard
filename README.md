@@ -10,11 +10,10 @@ This project is a Procurement Dashboard System built using Vite, React.js, Expre
 - [Usage](#usage)
 - [Technologies Used](#technologies-used)
 - [Contributing](#contributing)
-- [License](#license)
 
 ## Description
 
-The Procurement Dashboard System is a web application designed to manage procurement-related activities. It provides features for tracking procurement processes, managing suppliers, handling purchase orders, and generating procurement reports.
+The Procurement Dashboard System is a web application designed to manage procurement-projects. It provides features for adding, editing, deleting and updating procurement details.
 
 ## Features
 
@@ -64,7 +63,7 @@ The Procurement Dashboard System is a web application designed to manage procure
 
 - Visit http://localhost:5173 in your web browser to access the Procurement Dashboard System.
 - Log in with your credentials or sign up if you are a new user.
-- Explore the dashboard, manage suppliers, create purchase orders, and generate procurement reports.
+- Explore the dashboard, manage suppliers, and add procurement projects.
 
 ## Technologies Used
 
