@@ -29,3 +29,22 @@ The Procurement Dashboard System is a web application designed to manage procure
 
    ```bash
    git clone https://github.com/your-username/procurement-dashboard-system.git
+
+2. Navigate to the project directory:
+
+   ```command prompt
+   cd NFRDI-Procurement-Dashboard
+
+3. Clone the repository:
+
+   ```command prompt
+   cd client-side
+   npm install
+
+
+4. Navigate to the project directory:
+
+   ```command prompt
+   cd NFRDI-Procurement-Dashboard
+
+
