@@ -180,6 +180,8 @@
 .btnNext {
     cursor: pointer;
     font-style: bold;
+    border: none;
+    background-color: transparent;
 }
 
 .btnNext:hover {

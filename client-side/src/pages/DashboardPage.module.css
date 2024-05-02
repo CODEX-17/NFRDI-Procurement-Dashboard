@@ -32,6 +32,7 @@
 .header {
     display: flex;
     padding: 1.2%;
+    align-items: center;
     width: 100%;
     justify-content: space-between;
     background-color: #69ddff;
@@ -39,11 +40,13 @@
 
 .header input {
   width: 40%;
+  height: 30px;
   border: none;
   padding-left: 1%;
   color: #004481;
   border-radius: 5px;
   outline: none;
+  margin: 0;
 }
 
 .modal {

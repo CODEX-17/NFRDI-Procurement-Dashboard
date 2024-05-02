@@ -16,19 +16,23 @@ import axios from 'axios';
 import LoadingComponents from '../components/LoadingComponents';
 import PreviewSearchResult from '../components/PreviewSearchResult';
 import GraphsPage from './GraphsPage';
+import ActivityLog from '../components/ActivityLog';
 
 
 const DashboardPage = () => {
 
-  const [showSidebar, setshowSidebar] = useState(true)
+  //Show variables
+  const [isShowSideBar, setisShowSideBar] = useState(true)
   const [isShowloading, setisShowloading] = useState(true)
   const [isShowViewSearch, setisShowViewSearch] = useState(false)
   const [isShowManageAccount, setisShowManageAccount] = useState(false)
   const [showProfileCard, setshowProfileCard] = useState(false)
+  const [showSearchResults, setshowSearchResults] = useState(false)
+  const [isShowActivityLog, setIsShowActivityLog] = useState(false)
+
   const [searchList, setsearchList] = useState(null)
   const [projectList, setProjectList] = useState(null)
   const [itemView, setitemView] = useState(null)
-  const [showSearchResults, setshowSearchResults] = useState(false)
   const auth = JSON.parse(localStorage.getItem('user'))
 
   const navigate = useNavigate()
@@ -141,7 +145,14 @@ const DashboardPage = () => {
          }
 
         {
-          showSidebar && (
+          isShowActivityLog &&
+          <div className={style.previewPDF}>
+              <ActivityLog setIsShowActivityLog={setIsShowActivityLog}/>
+          </div>
+         }
+
+        {
+          isShowSideBar && (
             <div className={style.left}>
               <Sidebar/>
             </div>
@@ -153,7 +164,7 @@ const DashboardPage = () => {
             }
            
             <div className={style.header}>
-                <MdFormatListBulleted color='#004481' size={25} cursor={'pointer'} onClick={() => setshowSidebar(!showSidebar)}/>
+                <MdFormatListBulleted color='#004481' size={25} cursor={'pointer'} onClick={() => setisShowSideBar(!isShowSideBar)}/>
                 <input placeholder='Search...' onChange={handleSearch}></input>
                 <div className={style.horizontal}>
                   <IoNotifications color='#004481' size={20} cursor={'pointer'}/>
@@ -179,7 +190,7 @@ const DashboardPage = () => {
                         <IoPersonOutline/>
                         <p onClick={() => setisShowManageAccount(true)}>Edit Profile</p>
                       </div>
-                      <div id={style.icons}>
+                      <div id={style.icons} onClick={() => setIsShowActivityLog(true)}>
                         <FiActivity/>
                         <p>Activity Log</p>
                       </div>

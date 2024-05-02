@@ -16,40 +16,71 @@ const ProjectsPage = () => {
 
     const { updateModal, updatePDF, updatePreviewPDF, updateSelect, choose } = useChooseTab()
     const { deleteProject, projects } = useProjectsStore()
-    const { getFiles } = useFileStore()
 
-    const [progress, setProgress] = useState('ongoing')
     const [yearList, setYearList] = useState()
 
     const [filteredYear, setfilteredYear] = useState('all')
-    const [startList, setstartList] = useState(0)
-    const [endList, setendList] = useState(5)
+    const [progress, setProgress] = useState('ongoing')
 
     const [isShowDelete, setisShowDelete] = useState(false)
     const [loading, setLoading] = useState(true)
     const [selectedFile, setSelectedFile] = useState('')
     const [projectList, setProjectList] = useState(null)
     const [projectRendered, setProjectRendered] = useState(null)
-    const [fileList, setfileList] = useState(null)
+    const [filteredData, setFilteredData] = useState(null)
 
-    const [enableNext, setenableNext] = useState(true)
-    const [totalItems, setTotalItems] = useState(0)
+    const itemPerPage = 5
+    const [pageNumber, setPageNumber] = useState(0)
+    const [currentPage, setCurrentPage] = useState(1)
+
     let currentTotal = 0
 
     useEffect(() => {
 
+        //API to fetch projects
         axios.get('http://localhost:5000/getProject')
         .then(res => {
-            console.error(res.data)
-            setProjectList(res.data)
-            setProjectRendered(res.data)
-            generateYearsList(res.data)
-            generateDataProject(res.data)
+            const result = res.data
+            setProjectList(result)
+            generateYearsList(result)
+            generateDataProject(result)
             setLoading(false)
+
+            //Filter the default type bidding and ongoing progress
+            const filter = result.filter((data) => data.type === 1 && data.status === progress)
+
+            //Set to variable the filtered data
+            setFilteredData(filter)
+
+            //slice the filter into 5 values
+            setProjectRendered(filter.slice(0, 5))
+
+            const total = filter.length
+            const answer = Math.round(total/itemPerPage)
+
+            //If decimal it will add 1
+            if (Number.isFinite(answer) || !Number.isInteger(answer)) {
+                setPageNumber(answer + 1)
+            }else {
+                setPageNumber(answer)
+            }
+
+
         })
         .catch(err => console.error(err))
 
     },[])
+
+    useEffect(() => {
+        const selected = choose === 'bidding' ? 1 : 2
+
+        if (projectList) {
+            const filter = projectList.filter((data) => data.type === selected)
+            setFilteredData(filter)
+            setProjectRendered(filter.slice(0, 5))
+        }
+    },[choose])
+
 
     const generateYearsList = (projects) => {
 
@@ -125,18 +156,29 @@ const ProjectsPage = () => {
 
     }
 
-    const filterProjects = (year) => {
+    //Filter projects to render
+    const filterProjects = (progress, year) => {
+        console.log(progress, year)
+
         let filteredProjects = []
 
         if (year === 'all') {
-            filteredProjects = projectList
+           
+            for (let i = 0; i < filteredData.length; i++) {
+                const status = filteredData[i].status
+                if (status === progress) {
+                    filteredProjects.push(filteredData[i])
+                }
+                
+            }
         }
 
-        for (let i = 0; i < projectList.length; i++) {
-            const yearList = projectList[i].date_published
+        for (let i = 0; i < filteredData.length; i++) {
+            const yearList = filteredData[i].date_published
+            const status = filteredData[i].status
 
-            if (yearList.substring(0,4) == year) {
-                filteredProjects.push(projectList[i])
+            if (yearList.substring(0,4) === year && status === progress) {
+                filteredProjects.push(filteredData[i])
             }
             
         }
@@ -144,24 +186,49 @@ const ProjectsPage = () => {
         const pr_type = choose === 'bidding' ? 1 : 2
         const filter = filteredProjects.filter((data) => data.type === pr_type)
         setfilteredYear(year)
-        setProjectRendered(filter)
-
+        setProjectRendered(filter.slice(0, 5))
     }
 
+
     const handlePrevList = () => {
-        setstartList(old => parseInt(old) - 5)
-        setendList(old => parseInt(old) - 5)
+        const updatedPage = currentPage - 1
+
+        const starting = (updatedPage - 1) * itemPerPage
+        let ending = 0
+        if (starting === 0) {
+            ending = 5
+        }else {
+            ending = starting * 2
+        }
+        
+        setProjectRendered(filteredData.slice(starting, ending))
+        setCurrentPage(updatedPage)
     }
 
     const handleNextList = () => {
-        setstartList(old => parseInt(old) + 5)
-        setendList(old => parseInt(old) + 5)
+        const updatedPage = currentPage + 1
+
+        const starting = (updatedPage - 1) * itemPerPage
+        const ending = starting * 2
+
+        console.log(starting, ending)
+
+        setProjectRendered(filteredData.slice(starting, ending))
+        setCurrentPage(updatedPage)
+
+    }
+
+    const handleFilterProgress = (prog) => {
+        setProgress(prog)
+        console.log(projectRendered)
+        const filter = projectRendered.filter((data) => data.status === prog)
+        setProjectRendered(filter.slice(0, 5))
     }
 
 
     if (loading) {
         <LoadingComponents/>
-    }  
+    } 
 
   return (
     <div className={style.container}>
@@ -179,13 +246,13 @@ const ProjectsPage = () => {
           </div>
         }
         <div className={style.titleHead}>
-            <h1>Bidding Table / <p id={style.progressText}>{progress}</p></h1>
+            <h1>{choose === 'bidding' ? 'Bidding' : 'Alternative'} Table / <p id={style.progressText}>{progress}</p></h1>
         </div>
         <div className={style.menuHead}>
             <div className='d-flex gap-2 '>
-                <button className={progress === 'ongoing' ? style.btnMenuActived : style.btnMenu} onClick={() => setProgress('ongoing')}>Ongoing <VscServerProcess/></button>
-                <button className={progress === 'completed' ? style.btnMenuActived : style.btnMenu} onClick={() => setProgress('completed')}>Completed <FaRegCheckCircle/></button>
-                <select className={style.select} value={filteredYear} onChange={(e) => filterProjects(e.target.value)}>
+                <button className={progress === 'ongoing' ? style.btnMenuActived : style.btnMenu} onClick={() => {filterProjects('ongoing', filteredYear), setProgress('ongoing')}}>Ongoing <VscServerProcess/></button>
+                <button className={progress === 'completed' ? style.btnMenuActived : style.btnMenu} onClick={() => {filterProjects('completed', filteredYear), setProgress('completed')}}>Completed <FaRegCheckCircle/></button>
+                <select className={style.select} value={filteredYear} onChange={(e) => {filterProjects( progress, e.target.value), setfilteredYear(e.target.value)}}>
                     <option value={'all'} selected>All</option>
                     {
                         yearList && 
@@ -222,7 +289,7 @@ const ProjectsPage = () => {
             <tbody> 
                 {
                     projectRendered ? ( 
-                        projectRendered.filter((prod) => prod.status === progress).slice(startList, endList).map((prod, index) => (
+                        projectRendered.map((prod, index) => (
                             <tr key={index}>
                                 <th scope="row" id={style.thValue} >{prod.pr_no}</th>
                                 <td id={style.thValue} >{prod.title}</td>
@@ -253,10 +320,10 @@ const ProjectsPage = () => {
             </tbody>
         </table>
         <div className={style.menuBot}>
-            <p>Total: {projectRendered ? projectRendered.length : 0}</p>
+            <p>Total: {filteredData ? filteredData.length : 0}</p>
             <div className='d-flex gap-2'>
-                <p className={style.btnNext} onClick={projectRendered && projectRendered.length <= 5 ? handlePrevList : null}><GrPrevious/> Prev </p>
-                <p className={style.btnNext} onClick={projectRendered && projectRendered.length >= 5 ? handleNextList : null}> Next <GrNext/></p>
+                <button className={style.btnNext} disabled={currentPage === 1} onClick={handlePrevList} ><GrPrevious/> Prev </button>
+                <button className={style.btnNext} disabled={currentPage === pageNumber || projectRendered && projectRendered.length < 5} onClick={filteredData && projectRendered.length >= 5 ? handleNextList : null}> Next <GrNext/></button>
             </div>
             
             
