@@ -59,8 +59,20 @@ The Procurement Dashboard System is a web application designed to manage procure
    ```command prompt
    cd ../client-side
    npm run dev
+   
+## Usage
 
+Visit http://localhost:3000 in your web browser to access the Procurement Dashboard System.
+Log in with your credentials or sign up if you are a new user.
+Explore the dashboard, manage suppliers, create purchase orders, and generate procurement reports.
 
-
+##Technologies Used
+Vite
+React.js
+Express.js
+Node.js
+MySQL
+Contributing
+Contributions are welcome! If you have any suggestions, bug reports, or feature requests, please open an issue or submit a pull request.
 
 
