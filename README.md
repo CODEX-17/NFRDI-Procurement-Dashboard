@@ -1,4 +1,9 @@
+
 # Procurement Dashboard System
+
+<p align="center">
+  <img alig src="https://github.com/CODEX-17/NFRDI-Procurement-Dashboard/blob/main/dashboard.PNG" />
+</p>
 
 This project is a Procurement Dashboard System built using Vite, React.js, Express.js, Node.js, and MySQL database.
 
