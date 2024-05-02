@@ -35,16 +35,32 @@ The Procurement Dashboard System is a web application designed to manage procure
    ```command prompt
    cd NFRDI-Procurement-Dashboard
 
-3. Clone the repository:
+3. Install dependencies for the client-side (Vite + React):
 
    ```command prompt
    cd client-side
    npm install
 
-
-4. Navigate to the project directory:
+4. Install dependencies for the server-side (Express.js + Node.js):
 
    ```command prompt
-   cd NFRDI-Procurement-Dashboard
+   cd ../server-side
+   npm install
+
+5. Set up MySQL database and configure connection details in server-side/.env file.
+   
+6. Run the server
+
+   ```command prompt
+   npm start
+
+7. Run the server
+
+   ```command prompt
+   cd ../client-side
+   npm run dev
+
+
+
 
 
