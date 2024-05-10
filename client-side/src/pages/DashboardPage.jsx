@@ -97,12 +97,10 @@ const DashboardPage = () => {
 
   }
 
-  const generateImage = (image_id) => {
-    if (localStorage.getItem('images')) {
-      const images = JSON.parse(localStorage.getItem('images'))
-      const url = 'http://localhost:5000/'
-      const filter = images.filter((images) => images.image_id === image_id).map((images) => images.image_name)
-      return url+filter[0]
+  const generateImage = (image_name) => {
+    if (image_name) {
+      const image_path = 'http://localhost:5000/' + image_name
+      return image_path
     }else {
       return '/logo.jpg'
     }
@@ -119,6 +117,14 @@ const DashboardPage = () => {
       }
       return title
   }
+
+const generateFullname = (first_name, middle_name, last_name) => {
+  if (first_name, middle_name, last_name) {
+    return first_name +' '+ middle_name.charAt(0)+ '. ' + last_name
+  }else {
+    return 'N/A'
+  }
+}
 
   return (
     <div className={style.container}>
@@ -183,7 +189,7 @@ const DashboardPage = () => {
                 showProfileCard && (
                   <div className={style.cardShow} onMouseLeave={() =>setshowProfileCard(false)}>
                     <div className={style.card}>
-                      <h2>{auth.first_name+' '+auth.last_name}</h2>
+                      <h2>{generateFullname(auth[0].first_name,auth[0].middle_name,auth[0].last_name)}</h2>
                       <p>Administrator</p>
                       <hr/>
                       <div id={style.icons}>

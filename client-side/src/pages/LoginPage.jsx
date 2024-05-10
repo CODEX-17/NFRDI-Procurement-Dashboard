@@ -21,7 +21,6 @@ const LoginPage = () => {
 
   useEffect(() => {
     getProject()
-    getImages()
 
     if (localStorage.getItem('user')) {
       navigate('/dashboard')
@@ -49,6 +48,7 @@ const LoginPage = () => {
     axios.post('http://localhost:5000/verifyAccount', {currentEmail, currentPassword})
     .then((res) => {
       const result = res.data
+    
       if (result) {
         localStorage.setItem('user', JSON.stringify(result))
         navigate('/dashboard')

@@ -4,12 +4,13 @@ import { IoMdClose } from "react-icons/io";
 import { useChooseTab } from '../stores/useChooseTab';
 import { useFileStore } from '../stores/useFileStore';
 import { useProjectsStore } from '../stores/useProjectsStore';
+import axios from 'axios';
+import { Document, Page } from 'react-pdf';
 
 const ModalComponent = () => {
 
-  const { updateModal, choose, modal, updateLoading, select } = useChooseTab()
+  const { updateModal, choose, modal, updateLoading, selectProject } = useChooseTab()
   const { addProject, getProject } = useProjectsStore()
-  const { getFiles } = useFileStore()
   const user = JSON.parse(localStorage.getItem('user'))
 
   const [current_pr_Number, setcurrent_pr_Number] = useState()
@@ -19,7 +20,7 @@ const ModalComponent = () => {
   const [current_bac_resolution, setcurrent_bac_resolution] = useState(null)
   const [current_notice_of_award, setcurrent_notice_of_award] = useState(null)
   const [current_contract, setcurrent_contract] = useState(null)
-  const [current_notice_of_proceed, setcurrent_notice_of_proceed] = useState(null)
+  const [current_notice_to_proceed, setcurrent_notice_to_proceed] = useState(null)
   const [current_philgeps_award_notice, setcurrent_philgeps_award_notice] = useState(null)
   const [current_date_published, setcurrent_date_published] = useState()
   const [current_status, setcurrent_status] = useState('ongoing')
@@ -39,25 +40,21 @@ const ModalComponent = () => {
   }
 
   useEffect(() => {
-    getFiles()
-    getProject()
 
-    if (modal.type === 'edit') {
-      const data = choose === 'bidding' ? JSON.parse(localStorage.getItem('bidding')) : JSON.parse(localStorage.getItem('alternative'))
-      const filter = data.filter((value) => value.pr_code === select)
-      console.log(filter)
-
-      setcurrent_pr_Number(filter[0].pr_code)
-      setcurrent_title(filter[0].title)
-      setcurrent_contract_amount(parseFloat(filter[0].contract_amount))
-      setcurrent_contract(filter[0].contract)
-      setcurrent_contractor(filter[0].contractor)
-      setcurrent_bac_resolution(filter[0].bac_resolution)
-      setcurrent_notice_of_award(filter[0].notice_of_award)
-      setcurrent_notice_of_proceed(filter[0].notice_of_proceed)
-      setcurrent_philgeps_award_notice(filter[0].philgeps_award_notice)
-      setcurrent_date_published(filter[0].date_published)
+    if (modal.type === 'edit' && selectProject) {
+      console.log(selectProject)
+      setcurrent_pr_Number(selectProject.pr_no)
+      setcurrent_title(selectProject.title)
+      setcurrent_contract_amount(parseFloat(selectProject.contract_amount))
+      setcurrent_contract(selectProject.contract)
+      setcurrent_contractor(selectProject.contractor)
+      setcurrent_bac_resolution(selectProject.bac_resolution)
+      setcurrent_notice_of_award(selectProject.notice_of_award)
+      setcurrent_notice_to_proceed(selectProject.notice_to_proceed)
+      setcurrent_philgeps_award_notice(selectProject.philgeps_award_notice)
+      setcurrent_date_published(selectProject.date_published)
     }
+    
   },[])
 
   const handleCloseModal = () => {
@@ -70,17 +67,18 @@ const ModalComponent = () => {
 
     if (current_pr_Number) {
 
+      console.log(user)
         const dataInputed = {
           pr_no: current_pr_Number,
           title: current_title,
-          accnt_id: user.accnt_id,
+          accnt_id: user[0].accnt_id,
           contractor: current_contractor,
           type: 1, // 1 = bidding, 2 = alternative
           contract_amount: current_contract_amount,
           bac_resolution: current_bac_resolution,
           notice_of_award: current_notice_of_award,
           contract: current_contract,
-          notice_to_proceed: current_notice_of_proceed,
+          notice_to_proceed: current_notice_to_proceed,
           philgeps_award_notice: current_philgeps_award_notice,
           date_published: current_date_published,
           status: current_status,
@@ -106,7 +104,7 @@ const ModalComponent = () => {
     const dataInputed = {
         pr_no: current_pr_Number,
         title: current_title,
-        accnt_id: user.accnt_id,
+        accnt_id: user[0].accnt_id,
         contractor: current_contractor,
         type: 2, // 1 = bidding, 2 = alternative
         contract_amount: current_contract_amount,
@@ -126,11 +124,10 @@ const ModalComponent = () => {
     }, 3000);
   }
 
-  const generatePDF = (id) => {
-    const link = 'http://localhost:5000/'
-    const data = JSON.parse(localStorage.getItem('files'))
-    const filter = data.filter((files) => files.file_id === id).map((files) => files.file_name)
-    return link+filter[0]
+  const generateFile = (file_name) => {
+    if (file_name) {
+      return 'http://localhost:5000/' + file_name
+    }
   }
 
   const handleUpload = (data, type) => {
@@ -151,7 +148,7 @@ const ModalComponent = () => {
         }else if (type === 'contract') {
           setcurrent_contract(data)
         }else if (type === 'proceed') {
-          setcurrent_notice_of_proceed(data)
+          setcurrent_notice_to_proceed(data)
         }else if (type === 'philgeps') {
           setcurrent_philgeps_award_notice(data)
         }
@@ -187,11 +184,124 @@ const handleIfDuplicatePr = (e) => {
 
 }
 
+const handleSubmitEdit = (e) => {
+  e.preventDefault()  
+
+  if (
+    current_pr_Number,
+    current_title,
+    current_contractor,
+    current_contract_amount,
+    current_bac_resolution,
+    current_notice_of_award,
+    current_contract,
+    current_notice_to_proceed,
+    current_philgeps_award_notice,
+    current_date_published,
+    current_status
+  ) {
+
+    const data = {
+      pr_no: current_pr_Number,
+      accnt_id: selectProject.accnt_id,
+      title: current_title,
+      contractor: current_contractor,
+      contract_amount: current_contract_amount,
+      date_published: current_date_published,
+      status: current_status,
+      file_id: selectProject.file_id,
+    }
+
+    console.log(data)
+
+    axios.post('http://localhost:5000/updateProjectDetails', {obj:data})
+    .then((res) => {
+      const message =  res.data
+      console.log(message)
+
+      const formData = new FormData
+      formData.append('pr_no', current_pr_Number)
+      formData.append('file_id', selectProject.file_id)
+
+      console.log('bac', current_bac_resolution)
+
+      if (Array.isArray(current_bac_resolution)) {
+        console.log(1)
+        formData.append('bac_resolution', current_bac_resolution)
+      }
+
+      if (Array.isArray(current_notice_of_award)) {
+        console.log(2)
+        formData.append('notice_of_award', current_notice_of_award)
+      }
+
+      if (Array.isArray(current_contract)) {
+        console.log(3)
+        formData.append('contract', current_contract)
+      }
+
+      if (Array.isArray(current_notice_to_proceed)) {
+        console.log(4)
+        formData.append('notice_to_proceed', current_notice_to_proceed)
+      }
+
+      if (Array.isArray(current_philgeps_award_notice)) {
+        console.log(5)
+        formData.append('philgeps_award_notice', current_philgeps_award_notice)
+      }
+
+      axios.post('http://localhost:5000/uploadFiles', formData)
+      .then((res) => {
+        const message =  res.data
+        console.log(message)
+        updateModal(false, 'edit')
+      })
+      .catch(err => console.error(err))
+
+    })
+    .catch(err => console.error(err))
+
+
+  }
+
+}
+
+const handleUploadFiles = (e, type) => {
+  e.preventDefault()
+  const file = e.target.files[0]
+  
+  if (type === 'bac-resolution') {
+    setcurrent_bac_resolution(file)
+  }else if (type === 'notice-of-award') {
+    setcurrent_notice_of_award(file)
+  }else if (type === 'contract') {
+    setcurrent_contract(file)
+  }else if (type === 'notice-to-proceed') {
+    setcurrent_notice_to_proceed(file)
+  }else if (type === 'philgeps-award-notice') {
+    setcurrent_notice_to_proceed(file)
+  }
+  
+}
+
+const handleViewFiles = (data) => {
+  console.log(data)
+  if (data) {
+    if (Array.isArray(data)) {
+      return URL.createObjectURL(data)
+    }else {
+      return 'http://localhost:5000/' + data
+    }
+  }
+  
+  return ''
+}
+
   return (
     <div className={style.container}>
       <div className={style.headMenu}>
         <div className='d-flex gap-2 align-items-center'>
-          <h2>{choose === 'bidding' ? 'Add Bidding' : 'Add Alternative'}</h2>
+          <h2>{modal.type === 'add' ? 'Add' : 'Edit'}{choose === 'bidding' ? ' Bidding' : ' Alternative'}</h2>
           {errMess && <p id={style.notifError}>{errMess}</p>}
         </div>
           
@@ -259,9 +369,9 @@ const handleIfDuplicatePr = (e) => {
                     </div>
                     <div className='d-flex flex-column align-items-lg-start w-25'>
                       {
-                        current_notice_of_proceed &&
+                        current_notice_to_proceed &&
                         <div className={style.previewFile}>
-                          <iframe src={URL.createObjectURL(current_notice_of_proceed)}/>
+                          <iframe src={URL.createObjectURL(current_notice_to_proceed)}/>
                         </div>
                       }
                       <label>Notice to proceed</label>
@@ -381,7 +491,7 @@ const handleIfDuplicatePr = (e) => {
 
             modal.type === 'edit' && (
               choose === 'bidding' ? (
-                  <form>
+                  <form onSubmit={handleSubmitEdit}>
                       <div className='d-flex w-100 justify-content-between gap-2'>
                         <div className='d-flex flex-column align-items-lg-start w-25'>
                           <label>PR Code</label>
@@ -411,17 +521,17 @@ const handleIfDuplicatePr = (e) => {
                           {
                             current_bac_resolution &&
                             <div className={style.previewFile}>
-                              <iframe src={Array.isArray(current_bac_resolution) ? URL.createObjectURL(current_bac_resolution) : generatePDF(current_bac_resolution)}/>
+                              <iframe src={handleViewFiles(current_bac_resolution)}/>
                             </div>
                           }
-                          <label>Bac Resolution</label>
-                          <input type='file' placeholder='Contract Amount'/>
+                          <label>Bac Resolution11</label>
+                          <input type='file' placeholder='Contract Amount' onChange={(e) => handleUploadFiles(e, 'bac-resolution')}/>
                         </div>
                         <div className='d-flex flex-column align-items-lg-start w-25'>
                           {
                             current_notice_of_award &&
                             <div className={style.previewFile}>
-                              <iframe src={Array.isArray(current_notice_of_award) ? URL.createObjectURL(current_notice_of_award) : generatePDF(current_notice_of_award)}/>
+                              <iframe src={Array.isArray(current_notice_of_award) ? URL.createObjectURL(current_notice_of_award) : generateFile(current_notice_of_award)}/>
                             </div>
                           }
                           <label>Notice of award</label>
@@ -431,7 +541,7 @@ const handleIfDuplicatePr = (e) => {
                           {
                             current_contract &&
                             <div className={style.previewFile}>
-                              <iframe src={Array.isArray(current_contract) ? URL.createObjectURL(current_contract) : generatePDF(current_contract)}/>
+                              <iframe src={Array.isArray(current_contract) ? URL.createObjectURL(current_contract) : generateFile(current_contract) }/>
                             </div>
                           }
                           <label>Contract</label>
@@ -439,12 +549,12 @@ const handleIfDuplicatePr = (e) => {
                         </div>
                         <div className='d-flex flex-column align-items-lg-start w-25'>
                           {
-                            current_notice_of_proceed &&
+                            current_notice_to_proceed &&
                             <div className={style.previewFile}>
-                              <iframe src={Array.isArray(current_notice_of_proceed) ? URL.createObjectURL(current_notice_of_proceed) : generatePDF(current_notice_of_proceed)}/>
+                              <iframe src={Array.isArray(current_notice_to_proceed) ? URL.createObjectURL(current_notice_to_proceed) : generateFile(current_notice_to_proceed)}/>
                             </div>
                           }
-                          <label>Notice of proceed</label>
+                          <label>Notice to proceed</label>
                           <input type='file' placeholder='Contract Amount'/>
                         </div>
                       </div>
@@ -455,7 +565,7 @@ const handleIfDuplicatePr = (e) => {
                           {
                             current_philgeps_award_notice &&
                             <div className={style.previewFile}>
-                              <iframe src={Array.isArray(current_philgeps_award_notice) ? URL.createObjectURL(current_philgeps_award_notice) : generatePDF(current_philgeps_award_notice)}/>
+                              <iframe src={Array.isArray(current_notice_to_proceed) ? URL.createObjectURL(current_philgeps_award_notice) : generateFile(current_philgeps_award_notice)}/>
                             </div>
                           }
                           <label>Philgeps Award notice</label>  
@@ -464,13 +574,13 @@ const handleIfDuplicatePr = (e) => {
 
                         <div className='d-flex flex-column align-items-lg-start w-50'>
                           <label>Date publish</label>
-                          <input type='date' value={current_date_published} placeholder='Contract' style={{ height: '40px', paddingLeft: '10px' }} onChange={(e) => translateDate(e.target.value)}/>
+                          <input type='date' value={current_date_published?.substring(0,10)} placeholder='Contract' style={{ height: '40px', paddingLeft: '10px' }} onChange={(e) => translateDate(e.target.value)}/>
                         </div>
                       </div> 
-                      <button>Submit</button>
+                      <button type='submit'>Submit</button>
                     </form>
                 ):(
-                  <form>
+                  <form onSubmit={handleSubmitEdit}>
                       <div className='d-flex w-100 justify-content-between gap-2'>
                         <div className='d-flex flex-column align-items-lg-start w-25'>
                           <label>PR Code</label>
@@ -500,17 +610,17 @@ const handleIfDuplicatePr = (e) => {
                           {
                             current_bac_resolution &&
                             <div className={style.previewFile}>
-                              <iframe src={Array.isArray(current_bac_resolution) ? URL.createObjectURL(current_bac_resolution) : generatePDF(current_bac_resolution)}/>
+                              <iframe src={generateFile(current_bac_resolution)}/>
                             </div>
                           }
-                          <label>Bac Resolution</label>
-                          <input type='file' placeholder='Contract Amount'/>
+                          <label>Bac Resolution1</label>
+                          <input type='file' placeholder='Bac Resolution' onChange={(e) => handleUploadFiles(e, 'bac-resolution')}/>
                         </div>
                         <div className='d-flex flex-column align-items-lg-start w-25'>
                           {
                             current_notice_of_award &&
                             <div className={style.previewFile}>
-                              <iframe src={Array.isArray(current_notice_of_award) ? URL.createObjectURL(current_notice_of_award) : generatePDF(current_notice_of_award)}/>
+                              <iframe src={generateFile(current_notice_of_award)}/>
                             </div>
                           }
                           <label>Notice of award</label>
@@ -520,7 +630,7 @@ const handleIfDuplicatePr = (e) => {
                           {
                             current_contract &&
                             <div className={style.previewFile}>
-                              <iframe src={Array.isArray(current_contract) ? URL.createObjectURL(current_contract) : generatePDF(current_contract)}/>
+                              <iframe src={generateFile(current_contract)}/>
                             </div>
                           }
                           <label>Contract</label>
@@ -528,9 +638,9 @@ const handleIfDuplicatePr = (e) => {
                         </div>
                         <div className='d-flex flex-column align-items-lg-start w-25'>
                           {
-                            current_notice_of_proceed &&
+                            current_notice_to_proceed &&
                             <div className={style.previewFile}>
-                              <iframe src={Array.isArray(current_notice_of_proceed) ? URL.createObjectURL(current_notice_of_proceed) : generatePDF(current_notice_of_proceed)}/>
+                              <iframe src={generateFile(current_notice_to_proceed)}/>
                             </div>
                           }
                           <label>Notice of proceed</label>
@@ -544,7 +654,7 @@ const handleIfDuplicatePr = (e) => {
                           {
                             current_philgeps_award_notice &&
                             <div className={style.previewFile}>
-                              <iframe src={Array.isArray(current_philgeps_award_notice) ? URL.createObjectURL(current_philgeps_award_notice) : generatePDF(current_philgeps_award_notice)}/>
+                              <iframe src={generateFile(current_philgeps_award_notice)}/>
                             </div>
                           }
                           <label>Philgeps Award notice</label>  
@@ -556,7 +666,7 @@ const handleIfDuplicatePr = (e) => {
                           <input type='date' value={current_date_published} placeholder='Contract' style={{ height: '40px', paddingLeft: '10px' }} onChange={(e) => translateDate(e.target.value)}/>
                         </div>
                       </div> 
-                      <button>Submit</button>
+                      <button type='submit'>Submit</button>
                     </form>
               )
             )

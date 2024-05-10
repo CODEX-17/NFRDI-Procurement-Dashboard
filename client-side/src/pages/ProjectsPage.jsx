@@ -14,7 +14,7 @@ import LoadingComponents from '../components/LoadingComponents';
 
 const ProjectsPage = () => {
 
-    const { updateModal, updatePDF, updatePreviewPDF, updateSelect, choose } = useChooseTab()
+    const { updateModal, updatePDF, updatePreviewPDF, updateSelectProject, choose } = useChooseTab()
     const { deleteProject, projects } = useProjectsStore()
 
     const [yearList, setYearList] = useState()
@@ -137,20 +137,21 @@ const ProjectsPage = () => {
         updatePreviewPDF(true)
     }
 
-    const handleEdit = (pr_no) => {
-        updateSelect(pr_no)
+    const handleEdit = (data) => {
+        updateSelectProject(data)
         updateModal(true, 'edit')
     }
 
     const handleDelete = () => {
-        const filter = projectList.filter((bid) => bid.pr_code !== selectedFile)
+        const pr_no = selectedFile.pr_no
+        const filter = projectList.filter((bid) => bid.pr_no !== pr_no)
         setProjectList(filter)
         deleteProject(selectedFile)
         setisShowDelete(false)
     }
 
-    const handleShowDelete = (pr_no) => {
-        setSelectedFile(pr_no)
+    const handleShowDelete = (data) => {
+        setSelectedFile(data)
         setisShowDelete(true)
     }
 
@@ -305,7 +306,7 @@ const ProjectsPage = () => {
                                     
                                     <td id={style.thValue} >{prod.philgeps_award_notice && <button id={style.btnView} onClick={() => handleView(prod.philgeps_award_notice)}>View</button>}</td>
                                     <td id={style.thValue} >{convertDateFormat(prod.date_published)}</td>
-                                    <td id={style.thValue} ><button id={style.btnEdit} onClick={() => handleEdit(prod.pr_no)}>Edit</button> <button id={style.btnDelete} onClick={() => handleShowDelete(prod.pr_no)}>Delete</button></td>
+                                    <td id={style.thValue} ><button id={style.btnEdit} onClick={() => handleEdit(prod)}>Edit</button> <button id={style.btnDelete} onClick={() => handleShowDelete(prod)}>Delete</button></td>
                                 </tr>
                             ))
                         ) : (

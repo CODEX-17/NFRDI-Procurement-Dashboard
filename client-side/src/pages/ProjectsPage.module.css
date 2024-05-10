@@ -15,7 +15,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    margin-top: 8%;
+    justify-content: flex-start;
     animation: fade 0.5s ease-in-out;
 }
 
@@ -202,6 +203,7 @@
     height: 100%;
     position: absolute;
     display: flex;
+    top: 0;
     align-items: center;
     justify-content: center;
     background-color: #00458136;

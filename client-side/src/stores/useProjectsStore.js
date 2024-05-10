@@ -26,7 +26,7 @@ const useProjectsStore = create((set) => ({
   addProject: (obj) => {
 
     const formData = new FormData
-
+   
     console.log('obj',obj)
 
     if (obj.bac_resolution !== null) {
@@ -56,16 +56,6 @@ const useProjectsStore = create((set) => ({
     })
     .then((res) => {
       console.log(res.data)
-      // const data = {
-      //   pr_no
-      //   accnt_id
-      //   type
-      //   title
-      //   contractor
-      //   contract_amount
-      //   date_published
-      //   status
-      // }
     })
     .catch((err) => console.log(err))
 
@@ -75,8 +65,8 @@ const useProjectsStore = create((set) => ({
 
   },
 
-  deleteProject: (pr_no) => {
-    axios.put('http://localhost:5000/deleteProject', {pr_no})
+  deleteProject: (data) => {
+    axios.put('http://localhost:5000/deleteProject', {data})
     .then(res => console.log(res.data))
     .catch(err => console.error(err))
   },

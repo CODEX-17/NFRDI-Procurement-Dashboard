@@ -11,7 +11,7 @@ const useChooseTab = create((set) => ({
     type: 'add',
   },
 
-  select: null,
+  selectProject: null,
 
   previewPDF: false,
 
@@ -48,8 +48,8 @@ const useChooseTab = create((set) => ({
     set({ previewPDF: state })
   },
 
-  updateSelect: (pr_code) => {
-    set({ select: pr_code })
+  updateSelectProject: (data) => {
+    set({ selectProject: data })
   },
 
 }))

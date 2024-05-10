@@ -91,38 +91,36 @@ app.get('/getProject', (req, res) => {
     })
 })
 
-app.post('/verifyAccount', (req, res) => {
+app.post('/verifyAccount', async (req, res) => {
     const password = req.body.currentPassword
     const email = req.body.currentEmail
+  
+    const verifyQuery = "SELECT * FROM `tbl_accounts`INNER JOIN tbl_images ON tbl_accounts.image_id = tbl_images.image_id WHERE tbl_accounts.email =?"
 
-    const query = "SELECT * FROM tbl_accounts"
-
-    db.query(query, async (error, data, field) => {
+    db.query(verifyQuery,[email], async (error, data, field) => {
         if (error) {
             res.json(error)
         } else {
-            
+            console.log(data)
+            //If the inputted email is doesn't exist in database it will return false
             if (data.length > 0) {
-                for (let i = 0; i < data.length; i++) {
-                    const correctPassword = data[i].password;
-                    const correctEmail = data[i].email;
-
-                    if (correctEmail === email) {
-                        if (await argon2.verify(correctPassword, password)) {
-                            console.log(data[i])
-                            res.json(data[i])
-                        } else {
-                            res.json(false)
-                        } 
-                    }else {
-                        res.json(false)
-                    }
-                }
-               
+                const result = data
+                const correctPassword = result[0].password
+            
+                //Verify it the inoutted password matches the hash password
+                if (await argon2.verify(correctPassword, password)) {
+                    console.log(data)
+                    delete data[0].password
+                    res.json(data)
+                } else {
+                    console.log(false)
+                    res.json(false)
+                } 
             }else {
                 res.json(false)
             }
             
+           
         }
     })
 })
@@ -154,29 +152,106 @@ app.put('/changePassword', async (req,res) => {
         res.json(true)
     })
 
-
 })
 
 app.put('/deleteProject', (req, res) => {
-    const pr_no = req.body.pr_no
+    const data = req.body
+    const pr_no = data.pr_no
+    const bac_resolution = data.bac_resolution
+    const notice_of_award = data.notice_of_award
+    const contract = data.contract
+    const notice_to_proceed = data.notice_to_proceed
+    const philgeps_award_notice = data.philgeps_award_notice
 
-    const query = 'DELETE FROM tbl_project_details WHERE pr_no=?'
-    const query1 = 'DELETE FROM tbl_project_files WHERE pr_no=?'
+    const queryProjectDetails = 'DELETE FROM tbl_project_details WHERE pr_no=?'
+    const queryProjectFiles = 'DELETE FROM tbl_project_files WHERE pr_no=?'
 
-    db.query(query, [pr_no], (error, data, field) => {
-        if (error) {
-            return res.json(error)
+    //Delete file function
+    const deleteFilesByFilename = (selectedFileName) => {
+        const filePath = path.join(__dirname, 'uploads', 'files', selectedFileName)
+        fs.unlink(filePath, (err) => {
+            if (err) {
+            console.error(`Error deleting file ${selectedFileName}:`, err);
+            } else {
+            console.log(`File ${selectedFileName} deleted successfully`);
+            }
+        })
+    }
+
+    db.beginTransaction(async (err) => {
+        if (err) {
+            throw  err
         }
 
-   
-        db.query(query1, [pr_no], (error1, data1, field1) => {
-            if (error1) {
-                return res.json(error1)
-            }
+        try {
 
-            res.json({ success: true })
-        })
+            db.query(queryProjectDetails, [pr_no], (error, data1, field) => {
+                if (error) {
+                    // Rollback transaction if there's an error
+                    return db.rollback(() => {
+                        res.status(404).json(error);
+                    });
+                }
+
+                try {
+                    db.query(queryProjectFiles, [pr_no], (error1, data, field1) => {
+
+                        if (error1) {
+                            // Rollback transaction if there's an error
+                            return db.rollback(() => {
+                                res.status(404).json(error);
+                            })
+                        }
+
+                        //Delete the existing files in the uploads/files folder
+                        if (bac_resolution) {
+                            deleteFilesByFilename(bac_resolution)
+                        }
+                        if (notice_of_award) {
+                        deleteFilesByFilename(notice_of_award) 
+                        }
+                        if (contract) {
+                        deleteFilesByFilename(contract)
+                        }
+                        if (notice_to_proceed) {
+                        deleteFilesByFilename(notice_to_proceed)
+                        }
+                        if (philgeps_award_notice) {
+                        deleteFilesByFilename(philgeps_award_notice)       
+                        }
+
+                        db.commit((err) => {
+                            if (err) {
+                                // Rollback transaction if there's an error
+                                return db.rollback(() => {
+                                    res.status(404).json(error);
+                                })
+                            }
+
+                            res.status(200).json({ message: true })
+                        })
+
+                        
+                    })
+
+                } catch (error) {
+                    return res.status(404).json(error)
+                }
+
+            }) 
+
+        } catch (error) {
+            if (error) {
+                // Rollback transaction if there's an error
+                return db.rollback(() => {
+                    res.status(404).json(error);
+                });
+            }
+        }
+
     })
+
+
 })
 
 
@@ -245,17 +320,20 @@ app.post('/uploadImages', uploadImages.single('images'), (req, res) => {
 });
 
 
+//API for uploading files multiple times
 app.post('/uploadFiles/:pr_no', (req, res) => {
 
     const pr_no = req.params.pr_no;
 
+    //Multer Storage Filename format and storage configuration
     const storageFiles = multer.diskStorage({
         destination: './uploads/files',
         filename: (req, file, cb) => {
-            cb(null, pr_no+'_'+file.fieldname + path.extname(file.originalname))
+            cb(null, pr_no + '_' + file.fieldname + path.extname(file.originalname))
         }
     })
     
+    //Multer configuration
     const uploadFile = multer({ storage: storageFiles }).fields([
         { name: 'bac_resolution', maxCount: 1 },
         { name: 'notice_of_award', maxCount: 1 },
@@ -264,8 +342,21 @@ app.post('/uploadFiles/:pr_no', (req, res) => {
         { name: 'philgeps_award_notice', maxCount: 1 },
     ]);
 
+    //Delete file function
+    const deleteFilesByFilename = (selectedFileName) => {
+        const filePath = path.join(__dirname, 'uploads', 'files', selectedFileName)
+        fs.unlink(filePath, (err) => {
+            if (err) {
+            console.error(`Error deleting file ${selectedFileName}:`, err);
+            } else {
+            console.log(`File ${selectedFileName} deleted successfully`);
+            }
+        })
+    }
+
     uploadFile(req, res, (err) => {
 
+        //If theirs an error in multer
         if (err instanceof multer.MulterError) {
             return res.status(400).json({ message: "Multer error occurred.", error: err })
         } else if (err) {
@@ -275,7 +366,8 @@ app.post('/uploadFiles/:pr_no', (req, res) => {
         const files = req.files
         const date = new Date()
         const file_id = generateUniqueId()
-  
+        
+        //Store filenames in one variable array
         let filenames = Object.keys(files).reduce((acc, key) => {
             if (files[key] && files[key][0] && files[key][0].filename) {
                 acc[key] = files[key][0].filename
@@ -284,16 +376,40 @@ app.post('/uploadFiles/:pr_no', (req, res) => {
         },{})
 
         const query = 'INSERT INTO tbl_project_files (file_id, pr_no, bac_resolution, notice_of_award, contract, notice_to_proceed, philgeps_award_notice, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        
         db.query(query, [file_id, pr_no, filenames.bac_resolution, filenames.notice_of_award, filenames.contract, filenames.notice_to_proceed, filenames.philgeps_award_notice, date], (err) => {
             if (err) {
                 console.error("Error inserting files into database:", err);
                 return res.status(500).json({ message: "Error inserting files into database.", error: err });
             }
 
-            res.json({ message: 'Files successfully added!' });
+            //Delete the existing files in the uploads/files folder
+            if (filenames.bac_resolution) {
+                deleteFilesByFilename(filenames.bac_resolution)
+            }
+            if (filenames.notice_of_award) {
+               deleteFilesByFilename(filenames.notice_of_award) 
+            }
+            if (filenames.contract) {
+               deleteFilesByFilename(filenames.contract)
+            }
+            if (filenames.philgeps_award_notice) {
+               deleteFilesByFilename(filenames.philgeps_award_notice)
+            }
+            if (filenames.notice_to_proceed) {
+               deleteFilesByFilename(filenames.notice_to_proceed)       
+            }
+
+
+            //After deleting the files it will return message
+            res.json({ message: 'Files successfully added!' })
+
         });
     });
 });
+
+
+
 
 const storageImage = multer.diskStorage({
     destination: './uploads/files',
@@ -311,6 +427,18 @@ const upload = multer(
         }
     }
 );
+
+const fileStorage = multer.diskStorage({
+    destination: './uploads/files',
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + Date.now() + path.extname(file.originalname))
+    }
+})
+
+app.post('/updatePorjectFiles',  (req, res) => {
+    const { file_id } = req.body
+    console.log(file_id)
+})
 
 app.post('/updateAccount', upload.single('image'), (req, res) => {
 
@@ -379,6 +507,28 @@ app.post('/deleteImage', (req, res) => {
         } else {
             res.status(404).send('File not found')
     }
+})
+
+app.post('/updateProjectDetails', (req, res) => {
+    const data = req.body.obj
+    console.log(req.body.obj)
+    const pr_no = data.pr_no
+    const title = data.title
+    const contractor = data.contractor
+    const contract_amount = data.contract_amount
+    const date_published = data.date_published
+    const status = data.status
+
+    const query = 'UPDATE tbl_project_details SET pr_no=?, title=?, contractor=?, contract_amount=?, date_published=?, status=? WHERE pr_no=?'
+
+    db.query(query,[pr_no, title, contractor, contract_amount, date_published, status, pr_no], (error, result, field) => {
+        if (error) {
+            console.log(error)
+            res.status(404).send(error)
+        }else {
+            res.json({ message: 'Project details successfully updated!' })
+        }
+    })
 })
 
 
