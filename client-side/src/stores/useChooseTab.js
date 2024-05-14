@@ -6,6 +6,10 @@ const useChooseTab = create((set) => ({
   
   deleteFile: 'no',
 
+  message: '',
+
+  isShowMessage: false,
+
   modal: {
     show: false,
     type: 'add',
@@ -25,6 +29,14 @@ const useChooseTab = create((set) => ({
 
   updateDelete: (choose) => {
     set({ deleteFile: choose })
+  },
+
+  updateMessage: (data) => {
+    set({ message: data })
+  },
+
+  updateIsShowMessage: (data) => {
+    set({ isShowMessage: data })
   },
 
   updateModal: (action, type) => {

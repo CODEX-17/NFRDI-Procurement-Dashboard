@@ -67,7 +67,10 @@ const useProjectsStore = create((set) => ({
 
   deleteProject: (data) => {
     axios.put('http://localhost:5000/deleteProject', {data})
-    .then(res => console.log(res.data))
+    .then(res => {
+      const message = res.data
+      
+    })
     .catch(err => console.error(err))
   },
 

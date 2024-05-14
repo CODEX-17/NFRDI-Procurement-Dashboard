@@ -14,7 +14,7 @@ import LoadingComponents from '../components/LoadingComponents';
 
 const ProjectsPage = () => {
 
-    const { updateModal, updatePDF, updatePreviewPDF, updateSelectProject, choose } = useChooseTab()
+    const { updateModal, updatePDF, updatePreviewPDF, updateSelectProject, choose, updateMessage, updateIsShowMessage } = useChooseTab()
     const { deleteProject, projects } = useProjectsStore()
 
     const [yearList, setYearList] = useState()
@@ -146,8 +146,21 @@ const ProjectsPage = () => {
         const pr_no = selectedFile.pr_no
         const filter = projectList.filter((bid) => bid.pr_no !== pr_no)
         setProjectList(filter)
-        deleteProject(selectedFile)
-        setisShowDelete(false)
+
+        axios.put('http://localhost:5000/deleteProject', {data:selectedFile})
+        .then(res => {
+          const data = res.data
+          updateMessage(data.message)
+          updateIsShowMessage(true)
+          setisShowDelete(false)
+
+          setTimeout(() => {
+            updateIsShowMessage(false)
+          }, 5000);
+
+        })
+        .catch(err => console.error(err))
+        
     }
 
     const handleShowDelete = (data) => {

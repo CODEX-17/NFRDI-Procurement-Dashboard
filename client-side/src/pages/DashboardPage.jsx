@@ -30,6 +30,7 @@ const DashboardPage = () => {
   const [showSearchResults, setshowSearchResults] = useState(false)
   const [isShowActivityLog, setIsShowActivityLog] = useState(false)
 
+
   const [searchList, setsearchList] = useState(null)
   const [projectList, setProjectList] = useState(null)
   const [itemView, setitemView] = useState(null)
@@ -37,7 +38,7 @@ const DashboardPage = () => {
 
   const navigate = useNavigate()
 
-  const { modal, previewPDF, choose } = useChooseTab()
+  const { modal, previewPDF, choose, message, isShowMessage} = useChooseTab()
 
   useEffect(() => {
 
@@ -128,6 +129,7 @@ const generateFullname = (first_name, middle_name, last_name) => {
 
   return (
     <div className={style.container}>
+         
 
          {
           previewPDF &&
@@ -165,6 +167,7 @@ const generateFullname = (first_name, middle_name, last_name) => {
           )
         }
         <div className={style.right}>
+
             {
               modal.show &&  <div className={style.modal}><ModalComponent /></div>
             }
@@ -185,6 +188,12 @@ const generateFullname = (first_name, middle_name, last_name) => {
                 </div>
             </div>
             <div className={style.content}>
+              {
+                //Notification display
+                isShowMessage && (
+                  <div className={style.notification}>{message}</div>
+                )
+              }
               {
                 showProfileCard && (
                   <div className={style.cardShow} onMouseLeave={() =>setshowProfileCard(false)}>
