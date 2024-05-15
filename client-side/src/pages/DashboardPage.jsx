@@ -38,7 +38,7 @@ const DashboardPage = () => {
 
   const navigate = useNavigate()
 
-  const { modal, previewPDF, choose, message, isShowMessage} = useChooseTab()
+  const {previewPDF, choose, message, isShowMessage} = useChooseTab()
 
   useEffect(() => {
 
@@ -130,7 +130,6 @@ const generateFullname = (first_name, middle_name, last_name) => {
   return (
     <div className={style.container}>
          
-
          {
           previewPDF &&
           <div className={style.previewPDF}>
@@ -168,9 +167,6 @@ const generateFullname = (first_name, middle_name, last_name) => {
         }
         <div className={style.right}>
 
-            {
-              modal.show &&  <div className={style.modal}><ModalComponent /></div>
-            }
            
             <div className={style.header}>
                 <MdFormatListBulleted color='#004481' size={25} cursor={'pointer'} onClick={() => setisShowSideBar(!isShowSideBar)}/>

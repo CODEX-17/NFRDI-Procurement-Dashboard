@@ -55,7 +55,13 @@ const useProjectsStore = create((set) => ({
         },
     })
     .then((res) => {
-      console.log(res.data)
+      const data = res.data
+      updateMessage(data.message)
+      updateIsShowMessage(true)
+
+      setTimeout(() => {
+        updateLoading(false)
+      }, 3000);
     })
     .catch((err) => console.log(err))
 

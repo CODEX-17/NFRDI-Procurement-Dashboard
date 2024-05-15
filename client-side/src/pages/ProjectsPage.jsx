@@ -11,10 +11,11 @@ import { useProjectsStore } from '../stores/useProjectsStore';
 import { useFileStore } from '../stores/useFileStore';
 import { RiDeleteBinLine } from "react-icons/ri";
 import LoadingComponents from '../components/LoadingComponents';
+import ModalComponent from '../components/ModalComponent';
 
 const ProjectsPage = () => {
 
-    const { updateModal, updatePDF, updatePreviewPDF, updateSelectProject, choose, updateMessage, updateIsShowMessage } = useChooseTab()
+    const { updateModal, updatePDF, updatePreviewPDF, updateSelectProject, choose, updateMessage, updateIsShowMessage, modal } = useChooseTab()
     const { deleteProject, projects } = useProjectsStore()
 
     const [yearList, setYearList] = useState()
@@ -33,17 +34,18 @@ const ProjectsPage = () => {
     const itemPerPage = 5
     const [pageNumber, setPageNumber] = useState(0)
     const [currentPage, setCurrentPage] = useState(1)
+    const [reload, setReload] = useState(false)
 
 
     useEffect(() => {
-
+        console.log('execute')
         //API to fetch projects
         axios.get('http://localhost:5000/getProject')
         .then(res => {
             const result = res.data
-            setProjectList(result)
-            generateYearsList(result)
-            generateDataProject(result)
+            setProjectList(result.reverse())
+            generateYearsList(result.reverse())
+            generateDataProject(result.reverse())
 
             //Filter the default type bidding and ongoing progress
             const filter = result.filter((data) => data.type === 1 && data.status === progress)
@@ -69,13 +71,13 @@ const ProjectsPage = () => {
         })
         .catch(err => console.error(err))
 
-    },[])
+    },[reload])
 
 
     //Filter projects to render
     //It will execute only when the the user modified the filter
     useEffect(() => {
-
+        console.log('execute1')
         setLoading(true)
         
         const modeFilter = choose === 'bidding' ? 1 : 2
@@ -111,8 +113,7 @@ const ProjectsPage = () => {
             
         }
 
-    },[choose, progress, filteredYear])
-
+    },[choose, progress, filteredYear, reload])
 
     const generateYearsList = (projects) => {
 
@@ -147,7 +148,7 @@ const ProjectsPage = () => {
         const filter = projectList.filter((bid) => bid.pr_no !== pr_no)
         setProjectList(filter)
 
-        axios.put('http://localhost:5000/deleteProject', {data:selectedFile})
+        axios.post('http://localhost:5000/deleteProject/'+ pr_no, {data:selectedFile})
         .then(res => {
           const data = res.data
           updateMessage(data.message)
@@ -242,6 +243,9 @@ const ProjectsPage = () => {
         <LoadingComponents/>
     ) : (
     <div className={style.container}>
+            {
+              modal.show &&  <div className={style.modal}><ModalComponent setReload={setReload}/></div>
+            }
             {
                 isShowDelete &&
                     <div className={style.deleteContainer}>

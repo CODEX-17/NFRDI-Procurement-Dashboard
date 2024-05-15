@@ -170,9 +170,10 @@ const deleteFilesByFilename = (selectedFileName) => {
     });
 };
 
-app.put('/deleteProject', async (req, res) => {
+
+app.post('/deleteProject/:pr_no', async (req, res) => {
     const data = req.body;
-    const pr_no = data.pr_no;
+    const pr_no = req.params.pr_no;
     const { bac_resolution, notice_of_award, contract, notice_to_proceed, philgeps_award_notice } = data;
 
     const queryProjectDetails = 'DELETE FROM tbl_project_details WHERE pr_no=?';

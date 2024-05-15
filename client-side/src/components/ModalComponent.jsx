@@ -7,7 +7,7 @@ import { useProjectsStore } from '../stores/useProjectsStore';
 import axios from 'axios';
 import { Document, Page } from 'react-pdf';
 
-const ModalComponent = () => {
+const ModalComponent = ({setReload}) => {
 
   const { updateModal, choose, modal, updateLoading, selectProject, updateIsShowMessage, updateMessage } = useChooseTab()
   const { addProject, getProject } = useProjectsStore()
@@ -40,8 +40,6 @@ const ModalComponent = () => {
   }
 
   useEffect(() => {
-
-    console.log('selected proj:', selectProject)
 
     if (modal.type === 'edit' && selectProject) {
       console.log(selectProject)
@@ -93,16 +91,18 @@ const ModalComponent = () => {
           contractor: current_contractor,
           type: 1, // 1 = bidding, 2 = alternative
           contract_amount: current_contract_amount,
-          bac_resolution: current_bac_resolution,
-          notice_of_award: current_notice_of_award,
-          contract: current_contract,
-          notice_to_proceed: current_notice_to_proceed,
-          philgeps_award_notice: current_philgeps_award_notice,
+          bac_resolution: current_bac_resolution?.newfile,
+          notice_of_award: current_notice_of_award?.newfile,
+          contract: current_contract?.newfile,
+          notice_to_proceed: current_notice_to_proceed?.newfile,
+          philgeps_award_notice: current_philgeps_award_notice?.newfile,
           date_published: current_date_published,
           status: current_status,
       }
         
         addProject(dataInputed)
+        setReload(true)
+
 
         setTimeout(() => {
           updateLoading(false)
@@ -126,17 +126,18 @@ const ModalComponent = () => {
         contractor: current_contractor,
         type: 2, // 1 = bidding, 2 = alternative
         contract_amount: current_contract_amount,
-        bac_resolution: current_bac_resolution,
-        notice_of_award: current_notice_of_award,
+        bac_resolution: current_bac_resolution?.newfile,
+        notice_of_award: current_notice_of_award?.newfile,
         contract: null,
         notice_to_proceed: null,
-        philgeps_award_notice: current_philgeps_award_notice,
+        philgeps_award_notice: current_philgeps_award_notice?.newfile,
         date_published: current_date_published,
         status: current_status,
     }
 
     //Add project funtion
     addProject(dataInputed)
+    setReload(true)
 
     setTimeout(() => {
       updateLoading(false)
@@ -378,43 +379,68 @@ const handleViewFiles = (data) => {
                   <div className='d-flex w-100 justify-content-between align-items-center gap-2'>
                     <div className='d-flex flex-column align-items-lg-start w-25'>
                       {
-                        current_bac_resolution &&
-                        <div className={style.previewFile}>
-                          <iframe src={URL.createObjectURL(current_bac_resolution)}/>
-                        </div>
+                        current_bac_resolution?.newfile &&
+                          current_bac_resolution?.newfile instanceof File ? (
+                              <div className={style.previewFile}>
+                                <iframe src={URL.createObjectURL(current_bac_resolution?.newfile)}/>
+                              </div>
+                          ) : (
+                              <div className={style.previewFile}>
+                                <iframe src={generateFile(current_bac_resolution?.oldfile)}/>
+                              </div>
+                          )
                       }
                       <label>Bac Resolution</label>
-                      <input type='file' accept='.pdf' onChange={(e) => handleUpload(e.target.files[0], 'bac')}/>
+                      <input type='file' accept='.pdf' onChange={(e) => handleUploadFiles(e, 'bac-resolution')}/>
                     </div>
+
                     <div className='d-flex flex-column align-items-lg-start w-25'>
                       {
-                        current_notice_of_award &&
-                        <div className={style.previewFile}>
-                          <iframe src={URL.createObjectURL(current_notice_of_award)}/>
-                        </div>
+                        current_notice_of_award?.newfile &&
+                          current_notice_of_award?.newfile instanceof File ? (
+                              <div className={style.previewFile}>
+                                <iframe src={URL.createObjectURL(current_notice_of_award?.newfile)}/>
+                              </div>
+                          ) : (
+                              <div className={style.previewFile}>
+                                <iframe src={generateFile(current_notice_of_award?.oldfile)}/>
+                              </div>
+                          )
                       }
                       <label>Notice of award</label>
-                      <input type='file' accept='.pdf' onChange={(e) => handleUpload(e.target.files[0], 'award')}/>
+                      <input type='file' accept='.pdf' onChange={(e) => handleUploadFiles(e, 'notice-of-award')}/>
                     </div>
                     <div className='d-flex flex-column align-items-lg-start w-25'>
-                      {
-                        current_contract &&
-                        <div className={style.previewFile}>
-                          <iframe src={URL.createObjectURL(current_contract)}/>
-                        </div>
-                      }
+                        {
+                          current_contract?.newfile &&
+                            current_contract?.newfile instanceof File ? (
+                                <div className={style.previewFile}>
+                                  <iframe src={URL.createObjectURL(current_contract?.newfile)}/>
+                                </div>
+                            ) : (
+                                <div className={style.previewFile}>
+                                  <iframe src={generateFile(current_contract?.oldfile)}/>
+                                </div>
+                            )
+                        }
                       <label>Contract</label>
-                      <input type='file' accept='.pdf' onChange={(e) => handleUpload(e.target.files[0], 'contract')}/>
+                      <input type='file' accept='.pdf' onChange={(e) => handleUploadFiles(e, 'contract')}/>
                     </div>
                     <div className='d-flex flex-column align-items-lg-start w-25'>
                       {
-                        current_notice_to_proceed &&
-                        <div className={style.previewFile}>
-                          <iframe src={URL.createObjectURL(current_notice_to_proceed)}/>
-                        </div>
+                        current_notice_to_proceed?.newfile &&
+                          current_notice_to_proceed?.newfile instanceof File ? (
+                              <div className={style.previewFile}>
+                                <iframe src={URL.createObjectURL(current_notice_to_proceed?.newfile)}/>
+                              </div>
+                          ) : (
+                              <div className={style.previewFile}>
+                                <iframe src={generateFile(current_notice_to_proceed?.oldfile)}/>
+                              </div>
+                          )
                       }
                       <label>Notice to proceed</label>
-                      <input type='file' accept='.pdf' onChange={(e) => handleUpload(e.target.files[0], 'proceed')}/>
+                      <input type='file' accept='.pdf' onChange={(e) => handleUploadFiles(e, 'notice-to-proceed')}/>
                     </div>
                   </div>
 
@@ -422,19 +448,25 @@ const handleViewFiles = (data) => {
                     
                     <div className='d-flex flex-column align-items-lg-start w-25'>
                       {
-                        current_philgeps_award_notice &&
-                        <div className={style.previewFile}>
-                          <iframe src={URL.createObjectURL(current_philgeps_award_notice)}/>
-                        </div>
+                        current_philgeps_award_notice?.newfile &&
+                          current_philgeps_award_notice?.newfile instanceof File ? (
+                              <div className={style.previewFile}>
+                                <iframe src={URL.createObjectURL(current_philgeps_award_notice?.newfile)}/>
+                              </div>
+                          ) : (
+                              <div className={style.previewFile}>
+                                <iframe src={generateFile(current_philgeps_award_notice?.oldfile)}/>
+                              </div>
+                          )
                       }
                       <label>Philgeps Award notice</label>  
-                      <input type='file' accept='.pdf' onChange={(e) => handleUpload(e.target.files[0], 'philgeps')}/>
+                      <input type='file' accept='.pdf' onChange={(e) => handleUploadFiles(e, 'philgeps-award-notice')}/>
                     </div>  
 
 
                     <div className='d-flex flex-column align-items-lg-start w-25'>
                       <label>Status <p className={style.requiredMes}>*required</p></label>  
-                      <select required onChange={(e) => setcurrent_status(e.target.value)}>
+                      <select value={current_status} required onChange={(e) => setcurrent_status(e.target.value)}>
                         <option value='ongoing'>ongoing</option>
                         <option value='completed'>completed</option>
                       </select>
@@ -475,41 +507,57 @@ const handleViewFiles = (data) => {
 
                   <div className='d-flex w-100 justify-content-between align-items-center gap-2'>
                     <div className='d-flex flex-column align-items-lg-start w-25'>
-                      {
-                        current_bac_resolution &&
-                        <div className={style.previewFile}>
-                          <iframe src={URL.createObjectURL(current_bac_resolution)}/>
-                        </div>
-                      }
+                        {
+                          current_bac_resolution?.newfile &&
+                            current_bac_resolution?.newfile instanceof File ? (
+                                <div className={style.previewFile}>
+                                  <iframe src={URL.createObjectURL(current_bac_resolution?.newfile)}/>
+                                </div>
+                            ) : (
+                                <div className={style.previewFile}>
+                                  <iframe src={generateFile(current_bac_resolution?.oldfile)}/>
+                                </div>
+                            )
+                        }
                       <label>Bac Resolution</label>
-                      <input type='file' onChange={(e) => handleUpload(e.target.files[0], 'bac')}/>
+                      <input type='file' accept='.pdf' onChange={(e) => handleUploadFiles(e, 'bac-resolution')}/>
                     </div>
                     <div className='d-flex flex-column align-items-lg-start w-25'>
                       {
-                        current_notice_of_award &&
-                        <div className={style.previewFile}>
-                          <iframe src={URL.createObjectURL(current_notice_of_award)}/>
-                        </div>
+                        current_notice_of_award?.newfile &&
+                          current_notice_of_award?.newfile instanceof File ? (
+                              <div className={style.previewFile}>
+                                <iframe src={URL.createObjectURL(current_notice_of_award?.newfile)}/>
+                              </div>
+                          ) : (
+                              <div className={style.previewFile}>
+                                <iframe src={generateFile(current_notice_of_award?.oldfile)}/>
+                              </div>
+                          )
                       }
                       <label>Notice of award</label>
-                      <input type='file' onChange={(e) => handleUpload(e.target.files[0], 'award')}/>
+                      <input type='file' accept='.pdf' onChange={(e) => handleUploadFiles(e, 'notice-of-award')}/>
                     </div>
+                    <div className='d-flex flex-column align-items-lg-start w-25'>
+                        {
+                          current_philgeps_award_notice?.newfile &&
+                            current_philgeps_award_notice?.newfile instanceof File ? (
+                                <div className={style.previewFile}>
+                                  <iframe src={URL.createObjectURL(current_philgeps_award_notice?.newfile)}/>
+                                </div>
+                            ) : (
+                                <div className={style.previewFile}>
+                                  <iframe src={generateFile(current_philgeps_award_notice?.oldfile)}/>
+                                </div>
+                            )
+                        }
+                      <label>Philgeps Award notice</label>  
+                      <input type='file' accept='.pdf' onChange={(e) => handleUploadFiles(e, 'philgeps-award-notice')}/>
+                    </div>   
                   </div>
 
                   <div className='d-flex w-100 justify-content-between align-items-center gap-2'>
                     
-                    <div className='d-flex flex-column align-items-lg-start w-25'>
-                      {
-                        current_philgeps_award_notice &&
-                        <div className={style.previewFile}>
-                          <iframe src={URL.createObjectURL(current_philgeps_award_notice)}/>
-                        </div>
-                      }
-                      <label>Philgeps Award notice</label>  
-                      <input type='file' placeholder='Contract Amount' onChange={(e) => handleUpload(e.target.files[0], 'philgeps')}/>
-                    </div>  
-
-
                     <div className='d-flex flex-column align-items-lg-start w-25'>
                       <label>Status <p className={style.requiredMes}>*required</p></label>  
                       <select required onChange={(e) => setcurrent_status(e.target.value)}>
@@ -648,7 +696,7 @@ const handleViewFiles = (data) => {
                             )
                           }
                           <label>Philgeps Award notice</label>  
-                          {current_philgeps_award_notice?.oldfile && <input type='file' onChange={(e) => handleUploadFiles(e, 'philgeps-award-notice')}/>}
+                          {current_philgeps_award_notice?.oldfile && <input type='file' accept='.pdf' onChange={(e) => handleUploadFiles(e, 'philgeps-award-notice')}/>}
                         </div>
 
                         <div className='d-flex flex-column align-items-lg-start w-50'>
