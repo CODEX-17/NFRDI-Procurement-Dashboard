@@ -239,38 +239,7 @@ app.post('/deleteProject/:pr_no', async (req, res) => {
 });
 
 
-app.post('/addProject', (req, res) => {
-   
-    const data = req.body.obj
-    const pr_no = data.pr_no
-    const accnt_id = data.accnt_id
-    const type = data.type
-    const title = data.title
-    const contractor = data.contractor
-    const contract_amount = data.contract_amount
-    const date_published = data.date_published
-    const status = data.status
 
-    const query = "INSERT INTO tbl_project_details (pr_no, accnt_id, type, title, contractor, contract_amount, date_published, status ) VALUES (?,?,?,?,?,?,?,?)"
-
-    db.query(query, [
-        pr_no,
-        accnt_id,
-        type,
-        title,
-        contractor,
-        contract_amount,
-        date_published,
-        status,
-    ], (error, result) => {
-        if (error) {
-            console.error('Error adding project:', error)
-            res.status(500).json({ message: 'Failed to add project data' })
-        } else {
-            res.json({ message: 'project successfully added!', insertedId: result.insertId })
-        }
-    })
-})
 
 
 const storagImages = multer.diskStorage({
@@ -301,6 +270,42 @@ app.post('/uploadImages', uploadImages.single('images'), (req, res) => {
     });
 
 });
+
+app.post('/addProject', (req, res) => {
+   
+    const data = req.body.obj
+    const pr_no = data.pr_no
+    const accnt_id = data.accnt_id
+    const type = data.type
+    const title = data.title
+    const contractor = data.contractor
+    const contract_amount = data.contract_amount
+    const date_published = data.date_published
+    const status = data.status
+
+   
+
+    db.query(query, [
+        pr_no,
+        accnt_id,
+        type,
+        title,
+        contractor,
+        contract_amount,
+        date_published,
+        status,
+    ], (error, result) => {
+        if (error) {
+            console.error('Error adding project:', error)
+            res.status(500).json({ message: 'Failed to add project data' })
+        } else {
+            res.json({ message: 'project successfully added!', insertedId: result.insertId })
+        }
+    })
+})
+
+
+
 
 
 //API for uploading files multiple times
@@ -383,18 +388,68 @@ app.post('/addProject/:pr_no', (req, res) => {
            deleteFilesByFilename(filenames.notice_to_proceed)       
         }
 
-        const query = 'INSERT INTO tbl_project_files (file_id, pr_no, bac_resolution, notice_of_award, contract, notice_to_proceed, philgeps_award_notice, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-        
-        db.query(query, [file_id, pr_no, filenames.bac_resolution, filenames.notice_of_award, filenames.contract, filenames.notice_to_proceed, filenames.philgeps_award_notice, date], (err) => {
+        db.beginTransaction((err) => {
             if (err) {
-                console.error("Error inserting files into database:", err);
-                return res.status(500).json({ message: "Error inserting files into database.", error: err });
+                return res.status(500).json({ message: "Error starting transaction.", error: err });
             }
 
-            //After deleting the files it will return message
-            res.json({ message: 'Files successfully added!' })
+            const query = 'INSERT INTO tbl_project_files (file_id, pr_no, bac_resolution, notice_of_award, contract, notice_to_proceed, philgeps_award_notice, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+            
+            db.query(query, [file_id, pr_no, filenames.bac_resolution, filenames.notice_of_award, filenames.contract, filenames.notice_to_proceed, filenames.philgeps_award_notice, date], (err) => {
+                if (err) {
+                    return db.rollback(() => {
+                        console.error("Error inserting files into database:", error);
+                        return res.status(500).json({ message: "Error inserting files into database.." });
+                    });
+                }
 
-        });
+                const query = "INSERT INTO tbl_project_details (pr_no, accnt_id, type, title, contractor, contract_amount, date_published, status ) VALUES (?,?,?,?,?,?,?,?)"
+
+                const accnt_id = req.body.accnt_id
+                const type = req.body.type
+                const title = req.body.title
+                const contractor = req.body.contractor
+                const contract_amount = req.body.contract_amount
+                const date_published = req.body.date_published
+                const status = req.body.status
+
+                db.query(query, [pr_no, accnt_id, type, title, contractor, contract_amount, date_published, status ], (error, result) => {
+                    if (error) {
+                        return db.rollback(() => {
+                            console.error("Error inserting project details database:", error);
+                            return res.status(500).json({ message: "Error inserting project details database.." });
+                        });
+                    }
+
+                    //After deleting the files it will return message
+                    res.json({ message: 'project successfully added!', 
+                        data: {
+                            pr_no,
+                            accnt_id,
+                            title,
+                            type,
+                            contractor,
+                            contract_amount,
+                            date_published,
+                            status,
+                            file_id: pr_no,
+                            bac_resolution: filenames.bac_resolution,
+                            notice_of_award: filenames.notice_of_award,
+                            contract: filenames.contract,
+                            notice_to_proceed: filenames.notice_to_proceed,
+                            philgeps_award_notice: filenames.philgeps_award_notice,
+                        }
+                    })
+                    
+                })
+
+                
+
+            });
+
+        })
+
+
     });
 });
 

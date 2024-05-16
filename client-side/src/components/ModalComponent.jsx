@@ -124,13 +124,16 @@ const ModalComponent = ({updateProjectFromModal}) => {
           },
       })
       .then((res) => {
-        const data = res.data
-        const message = data.message
-        updateMessage(data.message)
+        const result = res.data
+        const message = result.message
+        const object = result.data
+        console.log(message)
+        console.log(object)
+        updateMessage(message)
         updateIsShowMessage(true)
 
         //Funtion to re-render varible in projectPage.jsx
-        updateProjectFromModal()
+        updateProjectFromModal(object)
 
         setTimeout(() => {
           updateLoading(false)
