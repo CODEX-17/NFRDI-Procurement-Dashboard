@@ -304,7 +304,7 @@ app.post('/uploadImages', uploadImages.single('images'), (req, res) => {
 
 
 //API for uploading files multiple times
-app.post('/uploadFiles/:pr_no', (req, res) => {
+app.post('/addProject/:pr_no', (req, res) => {
 
     const pr_no = req.params.pr_no;
 

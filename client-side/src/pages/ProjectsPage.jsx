@@ -38,17 +38,19 @@ const ProjectsPage = () => {
 
 
     useEffect(() => {
-        console.log('execute')
         //API to fetch projects
         axios.get('http://localhost:5000/getProject')
         .then(res => {
             const result = res.data
             setProjectList(result.reverse())
-            generateYearsList(result.reverse())
-            generateDataProject(result.reverse())
+            generateYearsList(result)
+            generateDataProject(result)
+
+            //If the method is bidding it will return 1 otherwise it will return 2
+            const method = choose === 'bidding' ? 1 : 2
 
             //Filter the default type bidding and ongoing progress
-            const filter = result.filter((data) => data.type === 1 && data.status === progress)
+            const filter = result.filter((data) => data.type === method && data.status === progress)
 
             //Set to variable the filtered data
             setFilteredData(filter)
@@ -71,7 +73,7 @@ const ProjectsPage = () => {
         })
         .catch(err => console.error(err))
 
-    },[reload])
+    },[projectList])
 
 
     //Filter projects to render
@@ -113,8 +115,14 @@ const ProjectsPage = () => {
             
         }
 
-    },[choose, progress, filteredYear, reload])
+    },[choose, progress, filteredYear])
 
+    //After added the project in modal it will update in parents 
+    const updateProjectFromModal = (project) => {
+        setProjectList([...projectList, project])
+    }
+
+    //Generate the list of years
     const generateYearsList = (projects) => {
 
         if (projects) {
@@ -128,6 +136,7 @@ const ProjectsPage = () => {
             setYearList(newData)
         }
     }
+
 
     const handleAdd = () => {
         updateModal(true, 'add')
@@ -203,7 +212,7 @@ const ProjectsPage = () => {
 
     }
 
-  
+    
 
 
     const handlePrevList = () => {
@@ -243,9 +252,7 @@ const ProjectsPage = () => {
         <LoadingComponents/>
     ) : (
     <div className={style.container}>
-            {
-              modal.show &&  <div className={style.modal}><ModalComponent setReload={setReload}/></div>
-            }
+            { modal.show &&  <div className={style.modal}><ModalComponent updateProjectFromModal={updateProjectFromModal}/></div>}
             {
                 isShowDelete &&
                     <div className={style.deleteContainer}>

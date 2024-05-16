@@ -7,7 +7,7 @@ import { useProjectsStore } from '../stores/useProjectsStore';
 import axios from 'axios';
 import { Document, Page } from 'react-pdf';
 
-const ModalComponent = ({setReload}) => {
+const ModalComponent = ({updateProjectFromModal}) => {
 
   const { updateModal, choose, modal, updateLoading, selectProject, updateIsShowMessage, updateMessage } = useChooseTab()
   const { addProject, getProject } = useProjectsStore()
@@ -83,25 +83,63 @@ const ModalComponent = ({setReload}) => {
 
     if (current_pr_Number) {
 
-        console.log(user)
-        const dataInputed = {
-          pr_no: current_pr_Number,
-          title: current_title,
-          accnt_id: user[0].accnt_id,
-          contractor: current_contractor,
-          type: 1, // 1 = bidding, 2 = alternative
-          contract_amount: current_contract_amount,
-          bac_resolution: current_bac_resolution?.newfile,
-          notice_of_award: current_notice_of_award?.newfile,
-          contract: current_contract?.newfile,
-          notice_to_proceed: current_notice_to_proceed?.newfile,
-          philgeps_award_notice: current_philgeps_award_notice?.newfile,
-          date_published: current_date_published,
-          status: current_status,
+      const formData = new FormData
+
+      //method bidding = 1 : alternative = 2
+      const method = choose === 'bidding' ? 1 : 2
+
+      formData.append('title', current_title)
+      formData.append('accnt_id', user[0].accnt_id)
+      formData.append('contractor', current_contractor)
+      formData.append('type', method)
+      formData.append('contract_amount', current_contract_amount)
+      formData.append('date_published', current_date_published)
+      formData.append('status', current_status)
+  
+      if (current_bac_resolution?.newfile instanceof File) {
+        formData.append('bac_resolution', current_bac_resolution?.newfile)
       }
+      
+      if (current_notice_of_award?.newfile instanceof File) {
+        formData.append('notice_of_award', current_notice_of_award?.newfile)
+      }
+      
+      //this line is applicable only in bidding method
+      if (current_contract?.newfile instanceof File && method === 1) {
+        formData.append('contract', current_contract?.newfile)
+      }
+
+      //this line is applicable only in bidding method
+      if (current_notice_to_proceed?.newfile instanceof File && method === 1) {
+        formData.append('notice_to_proceed', current_notice_to_proceed?.newfile)
+      }
+      
+      if (current_philgeps_award_notice?.newfile instanceof File) {
+        formData.append('philgeps_award_notice', current_philgeps_award_notice?.newfile)
+      }
+      
+      axios.post(`http://localhost:5000/addProject/${current_pr_Number}`, formData, {
+          headers: {
+            'Content-Type':'multipart/form-data',
+          },
+      })
+      .then((res) => {
+        const data = res.data
+        const message = data.message
+        updateMessage(data.message)
+        updateIsShowMessage(true)
+
+        //Funtion to re-render varible in projectPage.jsx
+        updateProjectFromModal()
+
+        setTimeout(() => {
+          updateLoading(false)
+        }, 3000);
+      })
+      .catch((err) => console.log(err))
+
+
         
-        addProject(dataInputed)
-        setReload(true)
 
 
         setTimeout(() => {
